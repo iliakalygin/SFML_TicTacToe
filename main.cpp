@@ -6,8 +6,8 @@
 int main()
 {
     // Window settings
-    unsigned int SCREEN_WIDTH = 600;
-    unsigned int SCREEN_HEIGHT = 600;
+    unsigned int SCREEN_WIDTH = 620;
+    unsigned int SCREEN_HEIGHT = 620;
     
     // Load window icon
     sf::Image icon;
@@ -43,8 +43,24 @@ int main()
                 window.close();
         }
 
+        // Draw Grid
+        sf::RectangleShape vetical_grid_line1({10.f, 600.f});
+        vetical_grid_line1.setPosition({200.f, 0.f});
+        sf::RectangleShape vetical_grid_line2({10.f, 600.f});
+        vetical_grid_line2.setPosition({410.f, 0.f});
+        sf::RectangleShape horizontal_grid_line1({600.f, 10.f});
+        horizontal_grid_line1.setPosition({0.f, 200.f});
+        sf::RectangleShape horizontal_grid_line2({600.f, 10.f});
+        horizontal_grid_line2.setPosition({0.f, 410.f});
+
 
         window.clear();
+
+        // Draw Grid
+        window.draw(vetical_grid_line1);
+        window.draw(vetical_grid_line2);
+        window.draw(horizontal_grid_line1);
+        window.draw(horizontal_grid_line2);
 
         window.display();
 
