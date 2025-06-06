@@ -129,6 +129,9 @@ int main()
                     {
                         // Feedback on click
                         std::cout << "Button " << currentButton << " pressed." << std::endl;
+
+                        // TODO: Check for turn and insert based on that X or O into 'field' list
+
                         // Append the clicked button to the "blacklist" 
                         clickedButtons.push_back(currentButton);
                     }
