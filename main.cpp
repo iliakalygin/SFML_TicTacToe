@@ -3,6 +3,7 @@
 #include <thread>
 #include <iostream>
 #include <string>
+#include <algorithm> // for std::find
 
 void drawGrid(sf::RenderWindow& window)
 {
@@ -55,13 +56,36 @@ int main()
 
     // Field with all placed X's and O's
     std::string field[9];
-    // Clicked buttons
-    std::string clikedButtons[9];
+    // Store already clicked buttons
+    std::vector<std::string> clickedButtons;
+    // Store current turn
+    int turn = 1;
+    // All buttons on field
+    std::vector<std::string> allButtons = {"00", "01", "02", "10", "11", "12", "20", "21", "22"};
+
+    // set mouse pressed state
+    bool wasMousePressed = false;
 
     // Button configuration
     const float buttonSize = 200.f;
     const float buttonSpacing = 10.f; // gap between grid lines
     std::vector<sf::RectangleShape> buttons;
+
+    // Generate 9 buttons in a 3x3 grid
+    for (int row = 0; row < 3; ++row)
+    {
+        for (int col = 0; col < 3; ++col)
+        {
+            sf::RectangleShape button({buttonSize, buttonSize});
+            button.setFillColor(BLACK);
+            button.setPosition({
+                col * (buttonSize + buttonSpacing),
+                row * (buttonSize + buttonSpacing)
+            });
+            buttons.push_back(button); // Appends button
+        }
+    }
+
 
     while (window.isOpen())
     {
@@ -72,26 +96,48 @@ int main()
             if (event->is<sf::Event::Closed>())
                 window.close();
         }
+        
+        // Handle mouse press toggle once per click
+        bool isMousePressed = sf::Mouse::isButtonPressed(sf::Mouse::Button::Left);
 
-        // Generate 9 buttons in a 3x3 grid
+        window.clear();
+
+        // Read mouse position
+        sf::Vector2i mousePosition = sf::Mouse::getPosition(window);
+        //std::cout << "Mouse Position - x: " << mousePosition.x << ", y: " << mousePosition.y << std::endl;
+
+        drawGrid(window);
+
+        // Cycle though the grid for mouse events
         for (int row = 0; row < 3; ++row)
         {
             for (int col = 0; col < 3; ++col)
             {
-                sf::RectangleShape button({buttonSize, buttonSize});
-                button.setFillColor(BLACK);
-                button.setPosition({
-                    col * (buttonSize + buttonSpacing),
-                    row * (buttonSize + buttonSpacing)
-                });
-                buttons.push_back(button); // Appends button
+                // Check over which button mouse is hovering
+                if (mousePosition.x >= row * (buttonSize + buttonSpacing) && 
+                    mousePosition.x <= (row+1) * (buttonSize + buttonSpacing) &&
+                    mousePosition.y >= col * (buttonSize + buttonSpacing) &&
+                    mousePosition.y <= (col+1) * (buttonSize + buttonSpacing))
+                {
+                    //std::cout << "Mouse Position : " << row << ", " << col << std::endl;
+
+                    std::string currentButton = std::to_string(row) + std::to_string(col);
+
+                    // Check if currentButton is in the clickedButtons list to prevent double clicks
+                    bool notAlreadyClicked = std::find(clickedButtons.begin(), clickedButtons.end(), currentButton) == clickedButtons.end();
+                    if (isMousePressed && !wasMousePressed && notAlreadyClicked)
+                    {
+                        // Feedback on click
+                        std::cout << "Button " << currentButton << " pressed." << std::endl;
+                        // Append the clicked button to the "blacklist" 
+                        clickedButtons.push_back(currentButton);
+                    }
+                }
             }
         }
 
-        // -----------------------------------------------------------------------------------
-        window.clear();
-
-        drawGrid(window);
+        // Reset the mouse state
+        wasMousePressed = isMousePressed;
 
         // Draw all buttons
         for (const auto& button : buttons)
