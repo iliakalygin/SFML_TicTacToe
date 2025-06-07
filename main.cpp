@@ -5,7 +5,7 @@
 #include <string>
 #include <algorithm> // for std::find
 
-void drawGrid(sf::RenderWindow& window)
+void draw_grid(sf::RenderWindow& window)
 {
     // Create grid lines
     sf::RectangleShape vetical_grid_line1({10.f, 620.f});
@@ -22,6 +22,49 @@ void drawGrid(sf::RenderWindow& window)
     window.draw(vetical_grid_line2);
     window.draw(horizontal_grid_line1);
     window.draw(horizontal_grid_line2);
+}
+
+void draw_field(sf::RenderWindow& window, const std::vector<std::pair<std::string, char>>& field)
+{
+    for (const auto& entry : field)
+    {
+        std::string pos = entry.first; // get position "01", "21", etc.
+        char symbol = entry.second;    // get 'X' or 'O'
+
+        // Convert position to ints
+        int row = pos[0] - '0';
+        int col = pos[1] - '0';
+
+        // Get center position for drawing
+        float x = col * 210.f + 50.f;
+        float y = row * 210.f + 50.f;
+
+        if (symbol == 'X')
+        {
+            sf::RectangleShape line1({282.f, 10.f});
+            line1.setFillColor(sf::Color::White);
+            line1.setPosition({x-50.f, y-50.f});
+            line1.rotate(sf::degrees(45));
+
+            sf::RectangleShape line2({282.f, 10.f});
+            line2.setFillColor(sf::Color::White);
+            line2.setPosition({x-50.f, y-60.f+210.f});
+            line2.rotate(sf::degrees(-45));
+
+            window.draw(line1);
+            window.draw(line2);
+        }
+        else if (symbol == 'O')
+        {
+            sf::CircleShape circle(100.f);
+            circle.setFillColor(sf::Color::Transparent);
+            circle.setOutlineThickness(10.f);
+            circle.setOutlineColor(sf::Color::White);
+            circle.setPosition({x-50.f, y-50.f});
+
+            window.draw(circle);
+        }
+    }
 }
 
 int main()
@@ -55,13 +98,11 @@ int main()
     sf::Clock clock;
 
     // Field with all placed X's and O's
-    std::string field[9];
+    std::vector<std::pair<std::string, char>> field;
     // Store already clicked buttons
     std::vector<std::string> clickedButtons;
     // Store current turn
     int turn = 1;
-    // All buttons on field
-    std::vector<std::string> allButtons = {"00", "01", "02", "10", "11", "12", "20", "21", "22"};
 
     // set mouse pressed state
     bool wasMousePressed = false;
@@ -106,7 +147,7 @@ int main()
         sf::Vector2i mousePosition = sf::Mouse::getPosition(window);
         //std::cout << "Mouse Position - x: " << mousePosition.x << ", y: " << mousePosition.y << std::endl;
 
-        drawGrid(window);
+        draw_grid(window);
 
         // Cycle though the grid for mouse events
         for (int row = 0; row < 3; ++row)
@@ -114,10 +155,10 @@ int main()
             for (int col = 0; col < 3; ++col)
             {
                 // Check over which button mouse is hovering
-                if (mousePosition.x >= row * (buttonSize + buttonSpacing) && 
-                    mousePosition.x <= (row+1) * (buttonSize + buttonSpacing) &&
-                    mousePosition.y >= col * (buttonSize + buttonSpacing) &&
-                    mousePosition.y <= (col+1) * (buttonSize + buttonSpacing))
+                if (mousePosition.x >= col * (buttonSize + buttonSpacing) && 
+                    mousePosition.x <= (col+1) * (buttonSize + buttonSpacing) &&
+                    mousePosition.y >= row * (buttonSize + buttonSpacing) &&
+                    mousePosition.y <= (row+1) * (buttonSize + buttonSpacing))
                 {
                     //std::cout << "Mouse Position : " << row << ", " << col << std::endl;
 
@@ -131,9 +172,12 @@ int main()
                         std::cout << "Button " << currentButton << " pressed." << std::endl;
 
                         // TODO: Check for turn and insert based on that X or O into 'field' list
-
+                        char mark = (turn % 2 == 0) ? 'O' : 'X';
+                        field.push_back({currentButton, mark});
+                        
                         // Append the clicked button to the "blacklist" 
                         clickedButtons.push_back(currentButton);
+                        turn++; // Increase turn by 1
                     }
                 }
             }
@@ -147,6 +191,9 @@ int main()
         {
             window.draw(button);
         }
+
+        // Draw field
+        draw_field(window, field);
 
         window.display();
 
