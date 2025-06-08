@@ -30,3 +30,7 @@
 *.exe
 *.out
 *.app
+
+sfml-app
+main.o
+/.vscode
