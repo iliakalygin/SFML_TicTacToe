@@ -67,6 +67,63 @@ void draw_field(sf::RenderWindow& window, const std::vector<std::pair<std::strin
     }
 }
 
+void check_winner(sf::RenderWindow& window, const std::vector<std::pair<std::string, char>>& field)
+{
+    // 3x3 board initialized with blanks
+    char board[3][3] = {{' ', ' ', ' '},
+                        {' ', ' ', ' '},
+                        {' ', ' ', ' '}};
+
+    // Fill board based on field vector
+    for (const auto& entry : field)
+    {
+        int row = entry.first[0] - '0';
+        int col = entry.first[1] - '0';
+        board[row][col] = entry.second;
+    }
+
+    // Check rows and columns
+    for (int i = 0; i < 3; ++i)
+    {
+        // Check rows
+        if (board[i][0] != ' ' &&
+            board[i][0] == board[i][1] &&
+            board[i][1] == board[i][2])
+        {
+            std::cout << "Player " << board[i][0] << " wins." << std::endl;
+        }
+
+        // Check columns
+        if (board[0][i] != ' ' &&
+            board[0][i] == board[1][i] &&
+            board[1][i] == board[2][i])
+        {
+            std::cout << "Player " << board[0][i] << " wins." << std::endl;
+        }
+    }
+
+    // Check diagonals
+    if (board[0][0] != ' ' &&
+        board[0][0] == board[1][1] &&
+        board[1][1] == board[2][2])
+    {
+        std::cout << "Player " << board[0][0] << " wins." << std::endl;
+    }
+
+    if (board[0][2] != ' ' &&
+        board[0][2] == board[1][1] &&
+        board[1][1] == board[2][0])
+    {
+        std::cout << "Player " << board[0][2] << " wins." << std::endl;
+    }
+
+    // Check for draw
+    if (field.size() == 9)
+    {
+        std::cout << "Draw." << std::endl;
+    }
+}
+
 int main()
 {
     // Window settings
@@ -147,8 +204,6 @@ int main()
         sf::Vector2i mousePosition = sf::Mouse::getPosition(window);
         //std::cout << "Mouse Position - x: " << mousePosition.x << ", y: " << mousePosition.y << std::endl;
 
-        draw_grid(window);
-
         // Cycle though the grid for mouse events
         for (int row = 0; row < 3; ++row)
         {
@@ -192,8 +247,11 @@ int main()
             window.draw(button);
         }
 
-        // Draw field
+        // Draw grid and field
+        draw_grid(window);
         draw_field(window, field);
+        // Check if someone won the game
+        check_winner(window, field);
 
         window.display();
 
