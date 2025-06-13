@@ -31,6 +31,5 @@
 *.out
 *.app
 
-sfml-app
-main.o
-/.vscode
+.vscode/
+/build
