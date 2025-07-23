@@ -2,13 +2,15 @@ cmake_minimum_required(VERSION 4.0)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+set(SFML_STATIC_LIBRARIES TRUE)
+
 project(tictactoe VERSION 1.0)
 
 find_package(SFML 3 COMPONENTS Graphics Window System Audio Network REQUIRED) 
 
 add_executable(tictactoe main.cpp)
 
-target_link_libraries(tictactoe sfml-graphics sfml-window sfml-system sfml-audio sfml-network)
+target_link_libraries(tictactoe SFML::Graphics SFML::Window SFML::System SFML::Audio SFML::Network)
 
 add_custom_command(TARGET tictactoe POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
