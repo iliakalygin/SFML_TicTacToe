@@ -67,7 +67,7 @@ void draw_field(sf::RenderWindow& window, const std::vector<std::pair<std::strin
     }
 }
 
-void check_winner(sf::RenderWindow& window, const std::vector<std::pair<std::string, char>>& field)
+char check_winner(sf::RenderWindow& window, const std::vector<std::pair<std::string, char>>& field)
 {
     // 3x3 board initialized with blanks
     char board[3][3] = {{' ', ' ', ' '},
@@ -90,7 +90,7 @@ void check_winner(sf::RenderWindow& window, const std::vector<std::pair<std::str
             board[i][0] == board[i][1] &&
             board[i][1] == board[i][2])
         {
-            std::cout << "Player " << board[i][0] << " wins." << std::endl;
+            return board[i][0];
         }
 
         // Check columns
@@ -98,7 +98,7 @@ void check_winner(sf::RenderWindow& window, const std::vector<std::pair<std::str
             board[0][i] == board[1][i] &&
             board[1][i] == board[2][i])
         {
-            std::cout << "Player " << board[0][i] << " wins." << std::endl;
+            return board[0][i];
         }
     }
 
@@ -107,21 +107,22 @@ void check_winner(sf::RenderWindow& window, const std::vector<std::pair<std::str
         board[0][0] == board[1][1] &&
         board[1][1] == board[2][2])
     {
-        std::cout << "Player " << board[0][0] << " wins." << std::endl;
+        return board[0][0];
     }
 
     if (board[0][2] != ' ' &&
         board[0][2] == board[1][1] &&
         board[1][1] == board[2][0])
     {
-        std::cout << "Player " << board[0][2] << " wins." << std::endl;
+        return board[0][2];
     }
 
     // Check for draw
     if (field.size() == 9)
     {
-        std::cout << "Draw." << std::endl;
+        return 'D';
     }
+    return ' ';
 }
 
 int main()
@@ -138,7 +139,7 @@ int main()
     }
 
     // Create window and set icon
-    sf::RenderWindow window(sf::VideoMode({SCREEN_WIDTH, SCREEN_HEIGHT}), "TicTacToe");
+    sf::RenderWindow window(sf::VideoMode({SCREEN_WIDTH, SCREEN_HEIGHT}), "sfmlapp");
     window.setIcon(icon.getSize(), icon.getPixelsPtr());
 
     // Colors
@@ -163,6 +164,9 @@ int main()
 
     // set mouse pressed state
     bool wasMousePressed = false;
+
+    // set result state
+    bool resultPrinted = false;
 
     // Button configuration
     const float buttonSize = 200.f;
@@ -221,7 +225,7 @@ int main()
 
                     // Check if currentButton is in the clickedButtons list to prevent double clicks
                     bool notAlreadyClicked = std::find(clickedButtons.begin(), clickedButtons.end(), currentButton) == clickedButtons.end();
-                    if (isMousePressed && !wasMousePressed && notAlreadyClicked)
+                    if (isMousePressed && !wasMousePressed && notAlreadyClicked && !resultPrinted)
                     {
                         // Feedback on click
                         std::cout << "Button " << currentButton << " pressed." << std::endl;
@@ -251,7 +255,15 @@ int main()
         draw_grid(window);
         draw_field(window, field);
         // Check if someone won the game
-        check_winner(window, field);
+        char result = check_winner(window, field);
+        if (result != ' ' && !resultPrinted) {
+            if (result == 'D') {
+                std::cout << "It's a Draw!" << std::endl;
+            } else {
+                std::cout << "\nPlayer " << result << " wins!" << std::endl;
+            }
+            resultPrinted = true;
+        }
 
         window.display();
 
