@@ -15,3 +15,5 @@ target_link_libraries(tictactoe SFML::Graphics SFML::Window SFML::System SFML::A
 add_custom_command(TARGET tictactoe POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
             ${CMAKE_SOURCE_DIR}/img $<TARGET_FILE_DIR:tictactoe>/img)
+
+# Build command (Linux): cd build || cmake ../ && make && ./tictactoe
