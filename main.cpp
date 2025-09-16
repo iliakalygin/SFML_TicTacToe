@@ -67,14 +67,50 @@ void draw_field(sf::RenderWindow& window, const std::vector<std::pair<std::strin
     }
 }
 
-char check_winner(sf::RenderWindow& window, const std::vector<std::pair<std::string, char>>& field)
+void draw_winner_line(sf::RenderWindow& window, int type, int cord = 0){
+    sf::RectangleShape line;
+
+    if (type == 0){ 
+        // vertical
+        line.setSize({10.f, 620.f});
+        line.setPosition({cord*200 - 105 + (cord-1)*10.f, 0.f});
+    } 
+    else if (type == 1){ 
+        // horizontal
+        line.setSize({620.f, 10.f});
+        line.setPosition({0.f, cord*200 - 105 + (cord-1)*10.f});
+    } 
+    else if (type == 2){ 
+        // diagonal top-lefts
+        line.setSize({900.f, 8.f});
+        line.setPosition({0.f, 1.f});
+        line.rotate(sf::degrees(45));
+    } 
+    else if (type == 3){ 
+        // diagonal top-right
+        line.setSize({900.f, 8.f});
+        line.setPosition({1.f, 620.f});
+        line.rotate(sf::degrees(-45));
+    }
+
+    line.setFillColor(sf::Color::Red);
+    window.draw(line);
+}
+
+struct WinnerResult {
+    char winner;
+    int lineType;
+    int coord;
+};
+
+WinnerResult check_winner(const std::vector<std::pair<std::string, char>>& field)
 {
-    // 3x3 board initialized with blanks
+    WinnerResult result{' ', -1, -1};
+
     char board[3][3] = {{' ', ' ', ' '},
                         {' ', ' ', ' '},
                         {' ', ' ', ' '}};
 
-    // Fill board based on field vector
     for (const auto& entry : field)
     {
         int row = entry.first[0] - '0';
@@ -85,44 +121,50 @@ char check_winner(sf::RenderWindow& window, const std::vector<std::pair<std::str
     // Check rows and columns
     for (int i = 0; i < 3; ++i)
     {
-        // Check rows
+        // Row
         if (board[i][0] != ' ' &&
             board[i][0] == board[i][1] &&
             board[i][1] == board[i][2])
         {
-            return board[i][0];
+            result = {board[i][0], 1, i + 1}; // horizontal win
+            return result;
         }
 
-        // Check columns
+        // Column
         if (board[0][i] != ' ' &&
             board[0][i] == board[1][i] &&
             board[1][i] == board[2][i])
         {
-            return board[0][i];
+            result = {board[0][i], 0, i + 1}; // vertical win
+            return result;
         }
     }
 
-    // Check diagonals
+    // Diagonal TL-BR
     if (board[0][0] != ' ' &&
         board[0][0] == board[1][1] &&
         board[1][1] == board[2][2])
     {
-        return board[0][0];
+        result = {board[0][0], 2, -1};
+        return result;
     }
 
+    // Diagonal TR-BL
     if (board[0][2] != ' ' &&
         board[0][2] == board[1][1] &&
         board[1][1] == board[2][0])
     {
-        return board[0][2];
+        result = {board[0][2], 3, -1};
+        return result;
     }
 
-    // Check for draw
+    // Draw
     if (field.size() == 9)
     {
-        return 'D';
+        result = {'D', -1, -1};
     }
-    return ' ';
+
+    return result;
 }
 
 int main()
@@ -172,6 +214,13 @@ int main()
     const float buttonSize = 200.f;
     const float buttonSpacing = 10.f; // gap between grid lines
     std::vector<sf::RectangleShape> buttons;
+
+    // restart timer
+    sf::Clock restartClock;
+    bool restartScheduled = false;
+
+    // store last result
+    WinnerResult lastResult{' ', -1, -1};
 
     // Generate 9 buttons in a 3x3 grid
     for (int row = 0; row < 3; ++row)
@@ -255,18 +304,37 @@ int main()
         draw_grid(window);
         draw_field(window, field);
         // Check if someone won the game
-        char result = check_winner(window, field);
-        if (result != ' ' && !resultPrinted) {
-            if (result == 'D') {
+        WinnerResult result = check_winner(field);
+        if (result.winner != ' ' && !resultPrinted) {
+            if (result.winner == 'D') {
                 std::cout << "It's a Draw!" << std::endl;
             } else {
-                std::cout << "\nPlayer " << result << " wins!" << std::endl;
+                std::cout << "\nPlayer " << result.winner << " wins!" << std::endl;
             }
+            lastResult = result;
             resultPrinted = true;
+            restartScheduled = true;
+            restartClock.restart();
+        }
+
+        // Always draw winner line while game over
+        if (resultPrinted && lastResult.winner != 'D' && lastResult.winner != ' ') {
+            draw_winner_line(window, lastResult.lineType, lastResult.coord);
         }
 
         window.display();
 
+        // reset game after 2 seconds after gameover
+        if (restartScheduled && restartClock.getElapsedTime().asSeconds() > 2.f) {
+            field.clear();
+            clickedButtons.clear();
+            turn = 1;
+            resultPrinted = false;
+            restartScheduled = false;
+            std::cout << "Game restarted!" << std::endl;
+        }
+
+        
         // Sleep to maintain 60 FPS
         sf::Time sleepTime = frameTime - clock.getElapsedTime();
         if (sleepTime > sf::Time::Zero)
